@@ -80,6 +80,30 @@ const OrbitDBDemo: React.FC = () => {
     const [aboutModalOpen, setAboutModalOpen] = useState<boolean>(false);
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
+    // Local storage backup functions
+    const saveToLocalStorage = (tweets: TweetData[]) => {
+        try {
+            localStorage.setItem('orbitdb-tweets', JSON.stringify(tweets));
+            console.log('Tweets backed up to localStorage');
+        } catch (err) {
+            console.warn('Could not save to localStorage:', err);
+        }
+    };
+
+    const loadFromLocalStorage = (): TweetData[] => {
+        try {
+            const stored = localStorage.getItem('orbitdb-tweets');
+            if (stored) {
+                const tweets = JSON.parse(stored);
+                console.log(`Loaded ${tweets.length} tweets from localStorage backup`);
+                return tweets;
+            }
+        } catch (err) {
+            console.warn('Could not load from localStorage:', err);
+        }
+        return [];
+    };
+
     useEffect(() => {
         const initOrbitDB = async () => {
             try {
@@ -125,9 +149,53 @@ const OrbitDBDemo: React.FC = () => {
 
                 console.log('Database opened successfully');
 
-                // Load existing entries without using async iterator (which might trigger sync)
-                const allEntries: any[] = [];
-                setData(allEntries);
+                // Load existing entries from the database and localStorage
+                try {
+                    const allEntries: TweetData[] = [];
+                    
+                    // First, try to load from localStorage as backup
+                    const localStorageData = loadFromLocalStorage();
+                    
+                    // Get all entries from the database
+                    for await (const entry of database.iterator()) {
+                        console.log('Loaded entry:', entry);
+                        if (entry.value && typeof entry.value === 'object') {
+                            const tweetData: TweetData = {
+                                content: entry.value.content || '',
+                                timestamp: entry.value.timestamp || Date.now(),
+                                author: entry.value.author || 'Anonymous',
+                                hash: entry.hash
+                            };
+                            allEntries.unshift(tweetData); // Add to beginning to show newest first
+                        }
+                    }
+                    
+                    // If no data from OrbitDB, use localStorage backup
+                    const finalData = allEntries.length > 0 ? allEntries : localStorageData;
+                    
+                    console.log(`Loaded ${finalData.length} existing tweets (${allEntries.length} from OrbitDB, ${localStorageData.length} from localStorage backup)`);
+                    setData(finalData);
+                    
+                    // Update localStorage with current data
+                    if (finalData.length > 0) {
+                        saveToLocalStorage(finalData);
+                    }
+                } catch (iteratorError) {
+                    console.warn('Could not iterate over existing entries:', iteratorError);
+                    // Fallback to localStorage
+                    const localStorageData = loadFromLocalStorage();
+                    setData(localStorageData);
+                    console.log(`Fallback: loaded ${localStorageData.length} tweets from localStorage`);
+                }
+
+                // Also load data from localStorage as a backup
+                const localStorageData = loadFromLocalStorage();
+                if (localStorageData.length > 0) {
+                    // Merge with existing data, avoiding duplicates
+                    const mergedData = [...new Map([...localStorageData, ...data].map(item => [item.hash, item])).values()];
+                    setData(mergedData);
+                    console.log(`Merged localStorage data: ${localStorageData.length} items`);
+                }
 
                 setLoading(false);
                 console.log('OrbitDB initialized successfully in offline mode');
@@ -165,12 +233,28 @@ const OrbitDBDemo: React.FC = () => {
         }
         
         try {
-            const hash = await db.add(tweetData);
+            // Ensure the tweet data has all required fields
+            const completeData: TweetData = {
+                content: tweetData.content,
+                timestamp: tweetData.timestamp,
+                author: tweetData.author
+            };
+            
+            const hash = await db.add(completeData);
             console.log('Tweet added with hash:', hash);
             
-            // Since we're in offline mode, manually update the state
-            const tweetWithHash = { ...tweetData, hash };
+            // Update the state with the hash included
+            const tweetWithHash = { ...completeData, hash };
             setData(prevData => [tweetWithHash, ...prevData]);
+            
+            // Backup to localStorage
+            saveToLocalStorage([tweetWithHash, ...data]);
+            
+            // Force a save/flush of the database if available
+            if (typeof db.save === 'function') {
+                await db.save();
+                console.log('Database saved');
+            }
         } catch (err) {
             console.error('Error adding tweet:', err);
             throw err;
@@ -182,11 +266,37 @@ const OrbitDBDemo: React.FC = () => {
         
         setIsRefreshing(true);
         try {
-            // In offline mode, we just refresh from current state
-            // In a real networked scenario, this would sync with peers
-            console.log('Data refreshed');
+            // Reload all entries from the database
+            const allEntries: TweetData[] = [];
+            
+            for await (const entry of db.iterator()) {
+                console.log('Refreshed entry:', entry);
+                if (entry.value && typeof entry.value === 'object') {
+                    const tweetData: TweetData = {
+                        content: entry.value.content || '',
+                        timestamp: entry.value.timestamp || Date.now(),
+                        author: entry.value.author || 'Anonymous',
+                        hash: entry.hash
+                    };
+                    allEntries.unshift(tweetData); // Add to beginning to show newest first
+                }
+            }
+            
+            console.log(`Refreshed with ${allEntries.length} tweets from database`);
+            setData(allEntries);
+            
+            // Backup refreshed data to localStorage
+            if (allEntries.length > 0) {
+                saveToLocalStorage(allEntries);
+            }
         } catch (err) {
             console.error('Error refreshing data:', err);
+            // Fallback to localStorage on refresh error
+            const localStorageData = loadFromLocalStorage();
+            if (localStorageData.length > 0) {
+                setData(localStorageData);
+                console.log('Refresh fallback: loaded data from localStorage');
+            }
         } finally {
             setIsRefreshing(false);
         }

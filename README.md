@@ -63,10 +63,39 @@ The project uses CRACO to configure webpack with proper Node.js polyfills for br
 
 1. **Initialization**: Creates a minimal libp2p instance in offline mode
 2. **Database Setup**: Opens an OrbitDB events database for storing tweets
-3. **Twitter UI**: Three-column layout with left navigation, center feed, right sidebar
-4. **Tweet Composition**: Full-screen modal composer with character limits and validation
-5. **Tweet Display**: Twitter-style cards with avatars, usernames, and timestamps
-6. **Data Persistence**: All tweets are stored in the decentralized OrbitDB database
+3. **Data Loading**: Loads existing tweets from OrbitDB + localStorage backup
+4. **Twitter UI**: Three-column layout with left navigation, center feed, right sidebar
+5. **Tweet Composition**: Full-screen modal composer with character limits and validation
+6. **Tweet Display**: Twitter-style cards with avatars, usernames, and timestamps
+7. **Data Persistence**: Dual-layer persistence with OrbitDB + localStorage backup
+
+## 💾 Data Persistence
+
+### How Tweets Persist After Page Refresh
+
+The app implements a **dual-layer persistence system** to ensure tweets never get lost:
+
+#### 1. **Primary Storage - OrbitDB**
+- All tweets are stored in a decentralized OrbitDB database
+- Uses IPFS content addressing for permanent storage
+- Survives page refreshes, browser restarts, and even computer reboots
+- Database files are stored locally in the browser's IndexedDB
+
+#### 2. **Backup Storage - localStorage**
+- Every tweet is automatically backed up to browser localStorage
+- Provides instant fallback if OrbitDB has loading issues
+- Ensures data availability even during OrbitDB initialization
+
+#### 3. **Loading Strategy**
+1. **On App Start**: Attempts to load tweets from OrbitDB database
+2. **Fallback**: If OrbitDB fails, loads from localStorage backup
+3. **Sync**: Keeps both storage layers synchronized
+
+#### 4. **When You Add a Tweet**
+1. Saves to OrbitDB database with cryptographic hash
+2. Immediately backs up to localStorage
+3. Updates UI with real-time display
+4. All future page refreshes will show your tweets
 
 ## 🖼️ User Interface
 
@@ -84,10 +113,30 @@ The project uses CRACO to configure webpack with proper Node.js polyfills for br
 - **Twitter Black**: Authentic Twitter dark mode colors (#000000, #16181c)
 - **Twitter Blue**: Primary accent color (#1d9bf0)  
 - **Proper Typography**: Twitter's font stack and sizing
-2. **Helia Setup**: Initializes IPFS layer without networking  
-3. **OrbitDB Creation**: Creates a database instance with sync disabled
-4. **Data Management**: Stores and retrieves data locally
-5. **UI Updates**: React state management for real-time updates
+
+## 🔧 Troubleshooting
+
+### If Tweets Disappear After Refresh
+
+1. **Check Browser Console**: Look for OrbitDB initialization errors
+2. **Clear Browser Data**: Sometimes helps reset corrupted database
+3. **localStorage Backup**: Tweets should still be in localStorage as backup
+4. **Refresh Button**: Use the refresh button in the app to reload from database
+
+### Persistence Debugging
+
+Open browser console to see persistence logs:
+```
+Loaded X existing tweets from database
+Tweets backed up to localStorage  
+Tweet added with hash: bafyre...
+```
+
+### Storage Locations
+
+- **OrbitDB**: Stored in browser's IndexedDB (`/orbitdb/` namespace)
+- **localStorage**: Key `orbitdb-tweets` contains JSON backup
+- **Console Logs**: Shows real-time persistence operations
 
 ## 🔧 Key Fixes Applied
 

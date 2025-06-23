@@ -136,7 +136,7 @@ const TweetCard: React.FC<TweetCardProps> = ({ tweet, index }) => {
             }}>
               <Chip
                 icon={<HashIcon sx={{ fontSize: 12 }} />}
-                label={`${tweet.hash.slice(0, 8)}...`}
+                label={`${tweet.hash.slice(0, 8)}...${tweet.hash.slice(-8)}`}
                 size="small"
                 variant="outlined"
                 sx={{ 
