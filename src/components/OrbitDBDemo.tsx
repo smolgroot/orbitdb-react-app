@@ -38,6 +38,7 @@ import {
 import TweetModal from './TweetModal';
 import TweetCard from './TweetCard';
 import AboutModal from './AboutModal';
+import DatabaseInfoModal from './DatabaseInfoModal';
 
 // Add polyfills for browser compatibility
 import { Buffer } from 'buffer';
@@ -81,6 +82,7 @@ const OrbitDBDemo: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [aboutModalOpen, setAboutModalOpen] = useState<boolean>(false);
+    const [databaseInfoModalOpen, setDatabaseInfoModalOpen] = useState<boolean>(false);
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [mobileNavValue, setMobileNavValue] = useState<number>(0);
 
@@ -115,6 +117,10 @@ const OrbitDBDemo: React.FC = () => {
                 setError(null);
                 console.log('Starting OrbitDB initialization...');
                 
+                // Check for shared database address in URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const sharedDbAddress = urlParams.get('db');
+                
                 // Create a minimal libp2p instance in offline mode
                 const libp2p = await createLibp2p({
                     start: false, // Don't start libp2p
@@ -145,13 +151,17 @@ const OrbitDBDemo: React.FC = () => {
                 console.log('OrbitDB instance created');
 
                 // Create or open a database with explicit offline configuration
-                const database = await orbitdbInstance.open('hello-world-db', { 
+                // Use shared database address if provided, otherwise use default
+                const databaseName = sharedDbAddress || 'hello-world-db';
+                console.log(`Opening database: ${databaseName}`);
+                
+                const database = await orbitdbInstance.open(databaseName, { 
                     type: 'events',
                     sync: false // Explicitly disable sync
                 });
                 setDb(database);
 
-                console.log('Database opened successfully');
+                console.log('Database opened successfully:', database.address);
 
                 // Load existing entries from the database and localStorage
                 try {
@@ -345,11 +355,19 @@ const OrbitDBDemo: React.FC = () => {
                 zIndex: 1000,
                 px: 2,
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'space-between'
             }}>
+                <IconButton 
+                    onClick={() => setDatabaseInfoModalOpen(true)}
+                    disabled={!db}
+                    sx={{ color: 'primary.main' }}
+                >
+                    <InfoIcon />
+                </IconButton>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                     🌐 OrbitDB
                 </Typography>
+                <Box sx={{ width: 40 }} /> {/* Spacer for centering */}
             </Box>
 
             {/* Left Sidebar - Desktop Navigation */}
@@ -367,6 +385,26 @@ const OrbitDBDemo: React.FC = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                             🌐 OrbitDB
                         </Typography>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<InfoIcon />}
+                            onClick={() => setDatabaseInfoModalOpen(true)}
+                            disabled={!db}
+                            sx={{
+                                mt: 1,
+                                textTransform: 'none',
+                                fontSize: '0.8rem',
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                    bgcolor: 'rgba(29, 155, 240, 0.1)',
+                                    borderColor: 'primary.light'
+                                }
+                            }}
+                        >
+                            Database Info
+                        </Button>
                     </Box>
 
                     {/* Navigation Menu */}
@@ -668,6 +706,14 @@ const OrbitDBDemo: React.FC = () => {
                     setAboutModalOpen(false);
                     setMobileNavValue(0); // Reset to Home tab
                 }}
+            />
+
+            <DatabaseInfoModal
+                open={databaseInfoModalOpen}
+                onClose={() => setDatabaseInfoModalOpen(false)}
+                db={db}
+                orbitdb={orbitdb}
+                tweetCount={data.length}
             />
 
             {/* Mobile Floating Action Button */}

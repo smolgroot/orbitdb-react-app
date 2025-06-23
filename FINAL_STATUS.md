@@ -7,6 +7,7 @@
 - **Data Persistence**: Dual-layer persistence (OrbitDB + localStorage backup)
 - **Tweet System**: Full tweet creation, storage, and display functionality
 - **Real-time Updates**: Live feed updates when new tweets are added
+- **Database Sharing**: Shareable database addresses and automatic URL-based connection
 
 ### 🎨 User Interface
 - **Authentic Twitter Design**: Pixel-perfect dark theme matching Twitter's UI
@@ -15,11 +16,12 @@
 - **Material-UI Integration**: Complete Material-UI theme with Twitter colors
 
 ### 📱 Mobile Features
-- **Top Header**: Fixed header with OrbitDB branding
+- **Top Header**: Fixed header with OrbitDB branding and database info button
 - **Bottom Navigation**: 5-tab navigation (Home, Search, Compose, Notifications, Profile)
 - **Floating Action Button**: Compose button positioned like Twitter
 - **Touch Interactions**: Improved hover states and touch feedback
 - **Smart Navigation**: Profile button opens About modal, Compose opens tweet modal
+- **Database Access**: Mobile-friendly database information modal
 
 ### 🔧 Technical Achievements
 - **React 18 Compatibility**: Updated to use createRoot API
@@ -29,6 +31,12 @@
 - **Build System**: Production-ready build with optimizations
 
 ## 🌟 Key Improvements Made
+
+### Database Sharing System
+- **DatabaseInfoModal Component**: New modal showing detailed database information
+- **Shareable Database Addresses**: Copy database addresses to share with others
+- **URL-based Database Loading**: Support for ?db= parameter to load shared databases
+- **Technical Details Display**: Shows database type, identity, peers, and replication status
 
 ### Navigation UX
 - Mobile bottom navigation properly handles Compose and Profile actions
