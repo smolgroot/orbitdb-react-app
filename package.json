@@ -1,0 +1,59 @@
+{
+  "name": "orbitdb-react-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^15.1.0",
+    "@chainsafe/libp2p-yamux": "^7.0.2",
+    "@craco/craco": "^7.1.0",
+    "@libp2p/bootstrap": "^11.0.42",
+    "@libp2p/identify": "^3.0.36",
+    "@libp2p/ping": "^2.0.35",
+    "@libp2p/webrtc": "^5.2.19",
+    "@libp2p/websockets": "^8.1.0",
+    "@orbitdb/core": "^2.5.0",
+    "assert": "^2.1.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "events": "^3.3.0",
+    "helia": "^4.2.6",
+    "https-browserify": "^1.0.0",
+    "libp2p": "^1.8.1",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "querystring-es3": "^0.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.4",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^4.9.5"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
