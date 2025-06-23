@@ -19,7 +19,10 @@ import {
   CardContent,
   AppBar,
   Toolbar,
-  Fab
+  Fab,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -79,6 +82,7 @@ const OrbitDBDemo: React.FC = () => {
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [aboutModalOpen, setAboutModalOpen] = useState<boolean>(false);
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+    const [mobileNavValue, setMobileNavValue] = useState<number>(0);
 
     // Local storage backup functions
     const saveToLocalStorage = (tweets: TweetData[]) => {
@@ -326,49 +330,71 @@ const OrbitDBDemo: React.FC = () => {
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-            {/* Left Sidebar - Navigation */}
+            {/* Mobile Top Header */}
             <Box sx={{ 
-                width: 275,
+                display: { xs: 'flex', md: 'none' },
                 position: 'fixed',
-                height: '100vh',
-                borderRight: '1px solid',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 60,
+                bgcolor: 'rgba(0, 0, 0, 0.85)',
+                backdropFilter: 'blur(12px)',
+                borderBottom: '1px solid',
                 borderColor: 'divider',
-                p: 2,
-                display: { xs: 'none', md: 'block' }
+                zIndex: 1000,
+                px: 2,
+                alignItems: 'center',
+                justifyContent: 'center'
             }}>
-                {/* Logo */}
-                <Box sx={{ p: 2, mb: 3 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        🌐 OrbitDB
-                    </Typography>
-                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                    🌐 OrbitDB
+                </Typography>
+            </Box>
 
-                {/* Navigation Menu */}
-                <Box sx={{ mb: 4 }}>
-                    <Button
-                        fullWidth
-                        startIcon={<HomeIcon />}
-                        sx={{ 
-                            justifyContent: 'flex-start',
-                            py: 1.5,
-                            px: 3,
-                            mb: 1,
-                            borderRadius: 8,
-                            textTransform: 'none',
-                            fontSize: '1.2rem',
-                            fontWeight: 'bold',
-                            color: 'text.primary',
-                            '&:hover': {
-                                bgcolor: 'action.hover'
-                            }
-                        }}
-                    >
-                        Home
-                    </Button>
-                    <Button
-                        fullWidth
-                        startIcon={<SearchIcon />}
-                        sx={{ 
+            {/* Left Sidebar - Desktop Navigation */}
+                <Box sx={{ 
+                    width: 275,
+                    position: 'fixed',
+                    height: '100vh',
+                    borderRight: '1px solid',
+                    borderColor: 'divider',
+                    p: 2,
+                    display: { xs: 'none', md: 'block' }
+                }}>
+                    {/* Logo */}
+                    <Box sx={{ p: 2, mb: 3 }}>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                            🌐 OrbitDB
+                        </Typography>
+                    </Box>
+
+                    {/* Navigation Menu */}
+                    <Box sx={{ mb: 4 }}>
+                        <Button
+                            fullWidth
+                            startIcon={<HomeIcon />}
+                            sx={{ 
+                                justifyContent: 'flex-start',
+                                py: 1.5,
+                                px: 3,
+                                mb: 1,
+                                borderRadius: 8,
+                                textTransform: 'none',
+                                fontSize: '1.2rem',
+                                fontWeight: 'bold',
+                                color: 'text.primary',
+                                '&:hover': {
+                                    bgcolor: 'action.hover'
+                                }
+                            }}
+                        >
+                            Home
+                        </Button>
+                        <Button
+                            fullWidth
+                            startIcon={<SearchIcon />}
+                            sx={{ 
                             justifyContent: 'flex-start',
                             py: 1.5,
                             px: 3,
@@ -490,9 +516,11 @@ const OrbitDBDemo: React.FC = () => {
                 flex: 1,
                 ml: { xs: 0, md: '275px' },
                 mr: { xs: 0, lg: '350px' },
-                minHeight: '100vh'
+                minHeight: '100vh',
+                pt: { xs: '60px', md: 0 },
+                pb: { xs: '70px', md: 0 }
             }}>
-                {/* Top Header */}
+                {/* Top Header - Desktop only */}
                 <Box sx={{ 
                     position: 'sticky',
                     top: 0,
@@ -501,7 +529,8 @@ const OrbitDBDemo: React.FC = () => {
                     borderBottom: '1px solid',
                     borderColor: 'divider',
                     p: 2,
-                    zIndex: 100
+                    zIndex: 100,
+                    display: { xs: 'none', md: 'block' }
                 }}>
                     <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                         Home
@@ -626,34 +655,142 @@ const OrbitDBDemo: React.FC = () => {
             {/* Modals */}
             <TweetModal
                 open={modalOpen}
-                onClose={() => setModalOpen(false)}
+                onClose={() => {
+                    setModalOpen(false);
+                    setMobileNavValue(0); // Reset to Home tab
+                }}
                 onSubmit={addTweet}
             />
             
             <AboutModal
                 open={aboutModalOpen}
-                onClose={() => setAboutModalOpen(false)}
+                onClose={() => {
+                    setAboutModalOpen(false);
+                    setMobileNavValue(0); // Reset to Home tab
+                }}
             />
 
             {/* Mobile Floating Action Button */}
             <Fab
                 color="primary"
-                aria-label="compose"
-                onClick={() => setModalOpen(true)}
-                disabled={!db}
                 sx={{
                     position: 'fixed',
-                    bottom: 24,
-                    right: 24,
+                    bottom: 90,
+                    right: 20,
                     display: { xs: 'flex', md: 'none' },
-                    bgcolor: 'primary.main',
+                    zIndex: 1000,
+                    width: 56,
+                    height: 56,
+                    boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)',
                     '&:hover': {
-                        bgcolor: 'primary.dark'
-                    }
+                        boxShadow: '0 6px 16px rgba(29, 155, 240, 0.4)',
+                        transform: 'scale(1.05)'
+                    },
+                    transition: 'all 0.2s ease-in-out'
                 }}
+                onClick={() => setModalOpen(true)}
+                disabled={!db}
             >
                 <AddIcon />
             </Fab>
+
+            {/* Mobile Bottom Navigation */}
+            <Paper sx={{ 
+                position: 'fixed', 
+                bottom: 0, 
+                left: 0, 
+                right: 0, 
+                display: { xs: 'block', md: 'none' },
+                zIndex: 1000
+            }}>
+                <BottomNavigation
+                    sx={{ 
+                        bgcolor: 'background.paper',
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                        height: 70,
+                        '& .MuiBottomNavigationAction-root': {
+                            minWidth: 'auto',
+                            padding: '6px 8px',
+                            '&:hover': {
+                                bgcolor: 'rgba(29, 155, 240, 0.1)'
+                            },
+                            '&.Mui-selected': {
+                                '& .MuiBottomNavigationAction-label': {
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600
+                                }
+                            }
+                        }
+                    }}
+                    value={mobileNavValue}
+                    onChange={(event, newValue) => {
+                        setMobileNavValue(newValue);
+                        // Handle specific navigation actions
+                        if (newValue === 2) { // Compose button
+                            setModalOpen(true);
+                            // Don't change the selected value for compose button
+                            return;
+                        } else if (newValue === 4) { // Profile button
+                            setAboutModalOpen(true);
+                            // Don't change the selected value for profile button
+                            return;
+                        }
+                    }}
+                >
+                    <BottomNavigationAction 
+                        label="Home" 
+                        icon={<HomeIcon />}
+                        sx={{ 
+                            color: 'text.primary',
+                            '&.Mui-selected': {
+                                color: 'primary.main'
+                            }
+                        }}
+                    />
+                    <BottomNavigationAction 
+                        label="Search" 
+                        icon={<SearchIcon />}
+                        sx={{ 
+                            color: 'text.secondary',
+                            '&.Mui-selected': {
+                                color: 'primary.main'
+                            }
+                        }}
+                    />
+                    <BottomNavigationAction 
+                        label="Compose" 
+                        icon={<AddIcon />}
+                        disabled={!db}
+                        sx={{ 
+                            color: 'primary.main',
+                            '&.Mui-selected': {
+                                color: 'primary.main'
+                            }
+                        }}
+                    />
+                    <BottomNavigationAction 
+                        label="Notifications" 
+                        icon={<NotificationsIcon />}
+                        sx={{ 
+                            color: 'text.secondary',
+                            '&.Mui-selected': {
+                                color: 'primary.main'
+                            }
+                        }}
+                    />
+                    <BottomNavigationAction 
+                        label="Profile" 
+                        icon={<PersonIcon />}
+                        sx={{ 
+                            color: 'text.secondary',
+                            '&.Mui-selected': {
+                                color: 'primary.main'
+                            }
+                        }}
+                    />
+                </BottomNavigation>
+            </Paper>
         </Box>
     );
 };
